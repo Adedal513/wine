@@ -27,7 +27,7 @@ template = env.get_template('template.html')
 company_foundation_year = 1920
 current_year = datetime.now().year
 
-wines_df = pd.read_excel('wine2.xlsx', na_values='', keep_default_na=False).fillna('')
+wines_df = pd.read_excel('products.xlsx', na_values='', keep_default_na=False).fillna('')
 products_deserialized = collections.defaultdict(list)
 
 for category in wines_df['Категория'].unique():
