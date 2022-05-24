@@ -1,7 +1,6 @@
 import collections
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime
-from pprint import pprint
 
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader, select_autoescape
