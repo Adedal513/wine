@@ -1,9 +1,13 @@
 import collections
+
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime
 
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+
+COMPANY_FOUNDATION_YEAR = 1920
 
 
 def year_view(year: int):
@@ -16,29 +20,32 @@ def year_view(year: int):
         return f'{year} лет'
 
 
-env = Environment(
-    loader=FileSystemLoader('.'),
-    autoescape=select_autoescape(['html', 'xml'])
-)
+if __name__ == '__main__':
+    env = Environment(
+        loader=FileSystemLoader('.'),
+        autoescape=select_autoescape(['html', 'xml'])
+    )
 
-template = env.get_template('template.html')
+    template = env.get_template('template.html')
 
-company_foundation_year = 1920
-current_year = datetime.now().year
+    current_year = datetime.now().year
 
-wines_df = pd.read_excel('products.xlsx', na_values='', keep_default_na=False).fillna('')
-products_deserialized = collections.defaultdict(list)
+    wines_df = pd.read_excel('products.xlsx', na_values='', keep_default_na=False).fillna('')
+    products_by_category = wines_df.groupby(by='Категория')
 
-for category in wines_df['Категория'].unique():
-    products_deserialized[category] = wines_df.groupby(by='Категория').get_group(name=category).drop(['Категория'], axis=1).to_dict('records')
+    products_deserialized = collections.defaultdict(list)
 
-rendered_page = template.render(
-    products=products_deserialized,
-    company_age=year_view(current_year - company_foundation_year)
-)
+    for category in wines_df['Категория'].unique():
+        products_deserialized[category] = products_by_category.get_group(name=category)
+        products_deserialized[category] = products_deserialized[category].drop(['Категория'], axis=1).to_dict('records')
 
-with open('template.html', 'w', encoding="utf8") as file:
-    file.write(rendered_page)
+    rendered_page = template.render(
+        products=products_deserialized,
+        company_age=year_view(current_year - COMPANY_FOUNDATION_YEAR)
+    )
 
-server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
-server.serve_forever()
+    with open('template.html', 'w', encoding="utf8") as file:
+        file.write(rendered_page)
+
+    server = HTTPServer(('0.0.0.0', 8000), SimpleHTTPRequestHandler)
+    server.serve_forever()
