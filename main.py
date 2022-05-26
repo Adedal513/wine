@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 COMPANY_FOUNDATION_YEAR = 1920
+PRODUCTS_CATALOG_FILE = 'products.xlsx'
 
 
 def year_view(year: int):
@@ -20,6 +21,16 @@ def year_view(year: int):
         return f'{year} лет'
 
 
+def get_products_list_by_category(excel_catalogue_path: str) -> collections.defaultdict[list]:
+    products_df = pd.read_excel(excel_catalogue_path, na_values=None, keep_default_na=False).to_dict('records')
+    grouped_products = collections.defaultdict(list)
+
+    for product in products_df:
+        grouped_products[product['Категория']].append(product)
+
+    return grouped_products
+
+
 if __name__ == '__main__':
     env = Environment(
         loader=FileSystemLoader('.'),
@@ -30,14 +41,7 @@ if __name__ == '__main__':
 
     current_year = datetime.now().year
 
-    wines_df = pd.read_excel('products.xlsx', na_values='', keep_default_na=False).fillna('')
-    products_by_category = wines_df.groupby(by='Категория')
-
-    products_deserialized = collections.defaultdict(list)
-
-    for category in wines_df['Категория'].unique():
-        products_deserialized[category] = products_by_category.get_group(name=category)
-        products_deserialized[category] = products_deserialized[category].drop(['Категория'], axis=1).to_dict('records')
+    products_deserialized = get_products_list_by_category(PRODUCTS_CATALOG_FILE)
 
     rendered_page = template.render(
         products=products_deserialized,
