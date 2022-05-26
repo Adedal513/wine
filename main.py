@@ -2,13 +2,14 @@ import collections
 
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime
+from os import getenv
 
 import pandas as pd
+from dotenv import load_dotenv
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 
 COMPANY_FOUNDATION_YEAR = 1920
-PRODUCTS_CATALOG_FILE = 'products.xlsx'
 
 
 def year_view(year: int):
@@ -39,9 +40,11 @@ if __name__ == '__main__':
 
     template = env.get_template('template.html')
 
-    current_year = datetime.now().year
+    load_dotenv()
+    products_catalog_file = getenv('PRODUCTS_CATALOG_FILE')
 
-    products_deserialized = get_products_list_by_category(PRODUCTS_CATALOG_FILE)
+    current_year = datetime.now().year
+    products_deserialized = get_products_list_by_category(products_catalog_file)
 
     rendered_page = template.render(
         products=products_deserialized,
